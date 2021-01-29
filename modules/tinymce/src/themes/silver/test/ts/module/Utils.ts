@@ -1,10 +1,11 @@
+import { TinyDom } from '@ephox/mcagar';
 import { Insert, Remove, SugarElement } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
 
 const createScrollDiv = (height: number) => SugarElement.fromHtml<HTMLElement>(`<div style="height: ${height}px;"></div>`);
 
 const setupPageScroll = (editor: Editor, amount: number) => {
-  const target = SugarElement.fromDom(editor.inline ? editor.getBody() : editor.getContainer());
+  const target = editor.inline ? TinyDom.body(editor) : TinyDom.container(editor);
 
   const divBefore = createScrollDiv(amount);
   const divAfter = createScrollDiv(amount);

@@ -9,13 +9,13 @@ import { TestStore } from './TestStore';
 
 type RootNode = SugarShadowDom.RootNode;
 
-interface KeyLoggerState {
-  log: string[];
-  onKeydown: EventUnbinder;
+export interface KeyLoggerState {
+  readonly log: string[];
+  readonly onKeydown: EventUnbinder;
 }
 
 interface StyleState {
-  style: SugarElement<HTMLStyleElement>;
+  readonly style: SugarElement<HTMLStyleElement>;
 }
 
 const setupIn = (
@@ -119,40 +119,57 @@ const guiSetup = <A, B> (createComponent: (store: TestStore, doc: SugarElement, 
   ], success, failure);
 };
 
-const mSetupKeyLogger = <T> (body: SugarElement): Step<T, T & KeyLoggerState> => Step.stateful((oldState, next, _die) => {
+const setupKeyLogger = (body: SugarElement<Element>): KeyLoggerState => {
   const onKeydown: EventUnbinder = DomEvent.bind(body, 'keydown', (event) => {
     newState.log.push('keydown.to.body: ' + event.raw.which);
   });
 
   const log: string[] = [ ];
   const newState = {
-    ...oldState,
     log,
     onKeydown
   };
-  next(newState);
-});
+  return newState;
+};
 
-const mTeardownKeyLogger = <T>(body: SugarElement, expected: string[]): Step<T & KeyLoggerState, T> => Step.stateful((state, next, _die) => {
+const teardownKeyLogger = (state: KeyLoggerState, expected: string[]): void => {
   Assertions.assertEq('Checking key log outside context (on teardown)', expected, state.log);
   state.onKeydown.unbind();
-  const { onKeydown, log, ...rest } = state;
-  next(rest as unknown as T);
-});
+};
 
-const mAddStyles = <T>(dos: RootNode, styles: string[]): Step<T, T & StyleState> => Step.stateful((value, next, _die) => {
+const addStyles = (dos: RootNode, styles: string[]): SugarElement<HTMLStyleElement> => {
   const style = SugarElement.fromTag('style');
   const head = SugarShadowDom.getStyleContainer(dos);
   Insert.append(head, style);
   Html.set(style, styles.join('\n'));
 
+  return style;
+};
+
+const removeStyles = (style: SugarElement<HTMLStyleElement>): void =>
+  Remove.remove(style);
+
+const mSetupKeyLogger = <T>(body: SugarElement<Element>): Step<T, T & KeyLoggerState> => Step.stateful((oldState, next, _die) => {
+  next({
+    ...oldState,
+    ...setupKeyLogger(body)
+  });
+});
+
+const mTeardownKeyLogger = <T>(body: SugarElement<Element>, expected: string[]): Step<T & KeyLoggerState, T> => Step.stateful((state, next, _die) => {
+  teardownKeyLogger(state, expected);
+  const { onKeydown, log, ...rest } = state;
+  next(rest as unknown as T);
+});
+
+const mAddStyles = <T>(dos: RootNode, styles: string[]): Step<T, T & StyleState> => Step.stateful((value, next, _die) => {
   next(Merger.deepMerge(value, {
-    style
+    style: addStyles(dos, styles)
   }));
 });
 
 const mRemoveStyles = Step.stateful((value: StyleState, next, _die) => {
-  Remove.remove(value.style);
+  removeStyles(value.style);
   next(value);
 });
 
@@ -161,9 +178,14 @@ export {
   setupInShadowRoot,
   setupInBodyAndShadowRoot,
   guiSetup,
+
+  setupKeyLogger,
+  teardownKeyLogger,
+  addStyles,
+  removeStyles,
+
   mSetupKeyLogger,
   mTeardownKeyLogger,
-
   mAddStyles,
   mRemoveStyles
 };

@@ -2,9 +2,22 @@ import { Attachment, Behaviour, DomFactory, Gui, GuiFactory, Positioning } from 
 import { Fun } from '@ephox/katamari';
 import { Class, SugarBody } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
+import { UiFactoryBackstage, UiFactoryBackstageShared } from 'tinymce/themes/silver/backstage/Backstage';
 import TestBackstage from './TestBackstage';
 
-export default () => {
+interface TestExtras {
+  readonly backstage: UiFactoryBackstage;
+  readonly shared: UiFactoryBackstageShared;
+  readonly extras: {
+    readonly editor: Editor;
+    readonly backstage: UiFactoryBackstage;
+  };
+  readonly destroy: () => void;
+  readonly uiMothership: Gui.GuiSystem;
+  readonly mockEditor: Editor;
+}
+
+const TestExtras = (): TestExtras => {
 
   const oldSink = document.querySelectorAll('.mce-silver-sink');
   if (oldSink.length > 0) {
@@ -55,3 +68,5 @@ export default () => {
     mockEditor
   };
 };
+
+export default TestExtras;

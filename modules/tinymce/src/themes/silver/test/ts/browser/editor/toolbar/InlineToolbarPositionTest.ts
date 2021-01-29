@@ -4,11 +4,11 @@ import { UnitTest } from '@ephox/bedrock-client';
 import { Arr, Strings } from '@ephox/katamari';
 import { McEditor, TinyApis } from '@ephox/mcagar';
 import { Css, Insert, Remove, SelectorFind, SugarBody, SugarElement } from '@ephox/sugar';
-import Editor from 'tinymce/core/api/Editor';
 
+import Editor from 'tinymce/core/api/Editor';
 import Theme from 'tinymce/themes/silver/Theme';
 
-UnitTest.asynctest('Inline Editor Toolbar Position test', (success, failure) => {
+UnitTest.asynctest('browser.tinymce.themes.silver.editor.toolbar.InlineToolbarPositionTest', (success, failure) => {
   Theme();
 
   const sAssertStaticPos = (container: SugarElement) => Waiter.sTryUntil('Wait for toolbar to be absolute', Step.sync(() => {
